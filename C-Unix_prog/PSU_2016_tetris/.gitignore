@@ -1,0 +1,7 @@
+*.o
+.idea
+a.out
+vgcore.*
+*~
+*#
+tetris

@@ -1,0 +1,144 @@
+#!/bin/sh
+## PROGRAMME DE STATISTIQUE POUR MATCHSTICK
+## 
+## MADE BY MOI (HUGO COUSIN)
+## ORIGINE FRANCE 100% PUR SHELL (LILLE)
+##
+## N'HESITEZ PAS À LAISSER UN POCE BLEU SI ÇA VOUS A PLU
+##(ET OUI JE NE PRÉCISE PAS OU METTRE LE POCE BLEU, MOUAHAHAHA)
+##
+##PROGRAMME À MODIFIER AVEC PRECAUTION, MP SUR YAMMER AU MOINDRE SOUCIS ET
+##ATTENDEZ VOUS À DES UPDATES
+trap stop INT
+stop() {
+    clear
+    if [[ -f $F ]]
+    then
+	rm $F
+    fi
+    stty echo
+    tput cnorm
+    exit
+}
+F="`basename $0`.tmp"
+if [[ -f $F ]]
+then
+    rm $F
+fi
+num='^[0-9]+$'
+if [[ $# -lt 2 ]] || ! [[ $2 =~ $num ]] || [[ $# -gt 3 ]]
+then
+    echo "Usage : `basename $0` [EXECUTABLE] [LINES] (max matches)"
+    exit
+fi
+if ! [[ -f $1 ]]
+then
+    echo "Executable $1 not found"
+    exit
+fi
+if ! [[ -x $1 ]]
+then
+    echo "Permission denied for $1"
+    exit
+fi
+if [[ $# -eq 3 ]] && ! [[ $3 =~ $num ]]
+then
+    echo "Usage : `basename $0` [EXECUTABLE] [LINES] (max matches)"
+    exit
+fi
+clear
+CT=$(($2+0))
+ST=$((2*($CT-1)+1))
+if [[ $# -eq 3 ]] && [[ $ST -gt $3 ]]
+then
+    ST=$3
+fi
+if [[ ! `env resize` ]]
+then
+    CMP=1
+    COLUMNS=`tput cols`
+    LINES=`tput lines`
+else
+    CMP=0
+    eval $(resize 2> /dev/null)
+fi
+
+read -p "Limit number of games ? [N|Y]: " CH
+while [ True ];
+do
+    case $CH in
+	"Y"|"y")
+	    read -p "Limit: " LIM
+	    if ! [[ $LIM =~ $num ]]
+	    then
+		continue
+	    fi
+	    clear
+	    break
+	    ;;
+	"N"|"n"|"")
+	    LIM=-1
+	    clear
+	    break
+	    ;;
+	*)
+	    echo -en "\r"
+    esac
+done
+COL=$COLUMNS
+ROW=$LINES
+stty -echo
+tput civis
+
+while [[ $TOT -ne $LIM ]]; do
+    if [[ $CMP -eq 1 ]]
+    then
+	COLUMNS=`tput cols`
+	LINES=`tput lines`
+    else
+	eval $(resize 2> /dev/null)
+    fi
+    if [[ $COL -ne $COLUMNS ]] || [[ $ROW -ne $LINES ]]
+    then
+	COL=$COLUMNS
+        ROW=$LINES
+        clear
+    fi
+    while [ 1 ]; do
+	echo -e "$(($RANDOM % $(($2 + 1))))\n$(($RANDOM % $(($ST + 1))))" ;
+    done | timeout 20s ./$1 $2 $ST &> /dev/null
+    R=`echo $? >> $F`
+    if [[ `tail -n 1 $F` -eq 139 ]];then
+	clear
+    fi
+    AI=`grep "2" $F| wc -l`
+    PC=`grep "1" $F| wc -l`
+    ERR=`grep "139" $F| wc -l`
+    TIM=`grep "124" $F| wc -l`
+    TOT=`cat $F | wc -l`
+    PER=$((($AI * 100) / ($AI + $PC)))
+    TXT="$PER% win of $TOT games"
+    TXT2="- RANDOM : $PC"
+    TXT3="- AI : $AI"
+    TXT4="- SEGV :  $ERR"
+    TXT5="- TIMEOUT : $TIM"
+    if [[ $COLUMNS -gt $((${#TXT} + 5)) ]] && [[ $LINES -gt 5 ]];
+       then
+	   echo -en "\r"
+	   tput cup $((($ROW / 2)-2)) $((($COL - 25) / 2))
+	   echo -en "$TXT\r"
+	   tput cup $((($ROW / 2)-1)) $((($COL - 25) / 2))
+	   echo -en "$TXT2\r"
+	   tput cup $((($ROW / 2))) $((($COL - 25) / 2))
+	   echo -en "$TXT3\r"
+	   tput cup $((($ROW / 2)+1)) $((($COL - 25) / 2))
+	   echo -en "$TXT4\r"
+	   tput cup $((($ROW / 2)+2)) $((($COL - 25) / 2))
+	   echo -en "$TXT5"
+    else
+	echo -en "\rPLEASE RESIZE"
+    fi
+done
+tput cup $((($ROW / 2)+10)) $((($COL - 25) / 2))
+read -p "Press enter to close"
+stop

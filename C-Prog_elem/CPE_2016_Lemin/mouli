@@ -1,0 +1,34 @@
+#!/bin/zsh
+output=log
+error=0
+green="\033[32m"
+red="\033[31m"
+white="\033[0m"
+
+compiled=`test -f "./lem_in" ; echo $?`
+if [[ "$compiled" == 1 ]];
+then
+    make re
+fi
+echo -ne "\n===============\n\n"
+for i in `find ./test/ -name '*.s'`
+do
+    echo -n "Fichier :" $i
+    ./lem_in < $i
+    valgrind ./lem_in < $i > ${output} 2>&1
+    ret=$?
+    error=`cat log | grep "ERROR SUMMARY" | cut -d " " -f 4`
+    context=`cat log | grep "ERROR SUMMARY" | cut -d " " -f 7`
+    if [[ "$error" != 0 ]];
+    then
+	if [[ "$ret" == 139 ]];
+	then
+	    echo -n " : Segmentation fault (core dumped)."
+	fi
+ 	echo " : ${red}KO${white}"
+	echo $error valgrind errors from $context contexts
+    else
+	echo " : ${green}OK${white}"
+    fi
+done
+rm $output

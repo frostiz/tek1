@@ -1,0 +1,10 @@
+# Ecrire entre les balises le nom des images de fond
+# Le reste sera ignoré
+# Les éléments non valides empecherons l'éditeur de se lancer
+# Et donnera une sauvegarde non lisible par le jeu
+
+==START==
+editor/backgrounds/bg1.jpg
+editor/backgrounds/bg2.jpg
+editor/backgrounds/bg3.jpg
+==END==
