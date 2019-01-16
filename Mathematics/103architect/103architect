@@ -1,0 +1,326 @@
+#!/usr/bin/python2.7
+import sys
+from math import *
+
+def display_help():
+    print("""USAGE
+    ./103architect x y transfo1 arg11 [arg12] [transfo2 arg12 [arg22]] ...
+
+DESCRIPTION
+    x   abscissa of the original point
+    y   ordinate of the original point
+
+    transfo arg1 [arg2]:
+    -t i j      Translation along vector (i, j)
+    -z m n      Scaling by factors m (x-axis) and n (y-axis)
+    -r d        Rotation centered in 0 by a d degree angle
+    -s d        Reflection over the axis passing through 0 with an inclination angle of d degrees""")
+
+try:
+    x = int(sys.argv[1])
+    y = int(sys.argv[2])
+except:
+    display_help()
+    sys.exit(84)
+if (len(sys.argv) < 5):
+    sys.exit(84)
+if (sys.argv[3] != "-t" and sys.argv[3] != "-h" and
+    sys.argv[3] != "-s" and sys.argv[3] != "-r"):
+    sys.exit(84)
+def find_error():
+    error = False
+    liste = []
+    for i, arg in enumerate(sys.argv[3:]):
+        if (sys.argv[i+3] == "-t"):
+            if (len(sys.argv) > i + 3 + 3):
+                if (sys.argv[i + 3 + 3] != "-t" and sys.argv[i + 3 + 3] != "-h" and
+                    sys.argv[i + 3 + 3] != "-s" and sys.argv[i + 3 + 3] != "-r"):
+                    print("invalid argument")
+                    sys.exit(84)
+            try:
+                sys.argv[i+3 + 1] = int(sys.argv[i+3 + 1])
+                sys.argv[i+3 + 2] = int(sys.argv[i+3 + 2])
+            except:
+                liste.append(str(i+3))
+                error = True
+                print("Usage : ./103architect -t <Vector_X> <Vector_Y>")
+                print("Vector_X and Vector_Y must be integer values !")
+        elif (sys.argv[i+3] == "-h"):
+            if (len(sys.argv) > i + 3 + 3):
+                if (sys.argv[i + 3 + 3] != "-t" and sys.argv[i + 3 + 3] != "-h" and
+                    sys.argv[i + 3 + 3] != "-s" and sys.argv[i + 3 + 3] != "-r"):
+                    print("invalid argument")
+                    sys.exit(84)
+            try:
+                sys.argv[i+3 + 1] = int(sys.argv[i+3 + 1])
+                sys.argv[i+3 + 2] = int(sys.argv[i+3 + 2])
+            except:
+                error = True
+                liste.append(str(i+3))
+                print("Usage : ./103architect -h <Ratio1> <Ratio2>")
+                print("Ratio1 and Ratio2 must be integer values !")                
+        elif (sys.argv[i+3] == "-r"):
+            if (len(sys.argv) > i + 3 + 2):
+                if (sys.argv[i + 3 + 2] != "-t" and sys.argv[i + 3 + 2] != "-h" and
+                    sys.argv[i + 3 + 2] != "-s" and sys.argv[i + 3 + 2] != "-r"):
+                    print("invalid argument")
+                    sys.exit(84)
+            try:
+                sys.argv[i+3 + 1] = int(sys.argv[i+3 + 1])
+            except:
+                error = True
+                liste.append(str(i+3+1))
+                print("Usage : ./103architect -r <Angle_in_degree>")
+                print("Angle must be an integer value !")
+        elif (sys.argv[i+3] == "-s"):
+            if (len(sys.argv) > i + 3 + 2):
+                if (sys.argv[i + 3 + 2] != "-t" and sys.argv[i + 3 + 2] != "-h" and
+                    sys.argv[i + 3 + 2] != "-s" and sys.argv[i + 3 + 2] != "-r"):
+                    print("invalid argument")
+                    sys.exit(84)
+            try:
+                sys.argv[i+3 + 1] = int(sys.argv[i+3 + 1])
+            except:
+                error = True
+                liste.append(str(i+3+1))
+                print("Usage : ./103architect -s <Angle_in_degree>")
+                print("Angle must be an integer value !")
+    if (error == True):
+        print ("Error on or after these flags index :"),
+        print ", ".join(liste)
+        sys.exit(84)
+
+def aff_operations():
+    for i, arg in enumerate(sys.argv[3:]):
+        if (sys.argv[i+3] == "-t"):
+            print ("Translation by the vector (%d, %d)"%(sys.argv[i+3+1], sys.argv[i+3+2]))
+        if (sys.argv[i+3] == "-h"):
+            print ("Homothety by the ratios %d and %d"%(sys.argv[i+3+1], sys.argv[i+3+2]))
+        if (sys.argv[i+3] == "-r"):
+            print ("Rotation at a %d degree angle"%(sys.argv[i+3+1]))
+        if (sys.argv[i+3] == "-s"):
+            a = sys.argv[i+3+1]
+            print ("Symmetry about an axis inclined with an angle of %d degrees"%a)
+
+def create_coord_matrix(x, y):
+    matrix = []
+    for i in range(3):
+        matrix.append([0] * 1)
+    matrix[0][0] = x
+    matrix[1][0] = y
+    matrix[2][0] = 1
+    return matrix
+
+def create_scale_matrix(scaleX, scaleY):
+    scale_matrix = []
+    for i in range(3):
+        scale_matrix.append([0] * 3)
+    scale_matrix[0][0] = scaleX
+    scale_matrix[1][1] = scaleY
+    scale_matrix[2][2] = 1
+    return scale_matrix
+
+def create_translate_matrix(vectorX, vectorY):
+    translate_matrix = []
+    for i in range(3):
+        translate_matrix.append([0] * 3)
+    translate_matrix[0][0] = 1
+    translate_matrix[0][2] = vectorX
+    translate_matrix[1][1] = 1
+    translate_matrix[1][2] = vectorY
+    translate_matrix[2][2] = 1
+    return translate_matrix
+
+def create_rotate_matrix(angle):
+    rotate_matrix = []
+    for i in range(3):
+        rotate_matrix.append([0] * 3)
+    angle = radians(angle)
+    if (degrees(angle) == 90 or degrees(angle) == 270):
+        rotate_matrix[0][0] = 0
+        rotate_matrix[0][1] = -sin(angle)
+        rotate_matrix[1][0] = sin(angle)
+        rotate_matrix[1][1] = 0
+        rotate_matrix[2][2] = 1
+    elif (degrees(angle) % 180 == 0):
+        rotate_matrix[0][0] = cos(angle)
+        rotate_matrix[0][1] = 0
+        rotate_matrix[1][0] = 0
+        rotate_matrix[1][1] = cos(angle)
+        rotate_matrix[2][2] = 1
+    else:
+        rotate_matrix[0][0] = cos(angle)
+        rotate_matrix[0][1] = -sin(angle)
+        rotate_matrix[1][0] = sin(angle)
+        rotate_matrix[1][1] = cos(angle)
+        rotate_matrix[2][2] = 1
+        
+    return rotate_matrix
+
+def create_symetry_matrix(angle):
+    symetry_matrix = []
+    angle = radians(angle)
+    for i in range(3):
+        symetry_matrix.append([0] * 3)
+    
+    symetry_matrix[0][0] = 1
+    symetry_matrix[1][1] = -1
+    symetry_matrix[2][2] = 1
+    return symetry_matrix
+
+def produit_matriciel(matrixa, matrixb):
+    i = 0
+    j = 0
+    k = 0
+    l = 0
+    result = 0
+    matrix_result = []
+    for s in range(3):
+        matrix_result.append([0] * 1)
+    while (i != 3):
+        result = result + matrixa[i][j] * matrixb[j][k]
+        j = j + 1
+        if (j == 3):
+            k = k + 1
+            matrix_result[l][0] = result
+            l = l + 1
+            result = 0
+            j = 0
+            if (k == 1):
+                k = 0
+                i = i + 1
+    return matrix_result
+
+def produit_matriciel2(matrixa, matrixb):
+    i = 0
+    j = 0
+    k = 0
+    l = 0
+    m = 0
+    result = 0
+    matrix_result = []
+    for s in range(3):
+        matrix_result.append([0] * 3)
+    while (i != 3):
+        result = result + matrixa[i][j] * matrixb[j][k]
+        j = j + 1
+        if (j == 3):
+            k = k + 1
+            matrix_result[l][m] = result
+            m = m + 1
+            result = 0
+            j = 0
+            if (k == 3):
+                l = l + 1
+                k = 0
+                m = 0
+                i = i + 1
+    return matrix_result
+
+def aff_matrix(matrix):
+    i = 0
+    j = 0
+    while (j != 3):
+        if (i + 1 == 3):
+            if (round(matrix[j][i], 2) == -0.00):
+                print ("0.00")
+            else:
+                print ("%.2f"%((matrix[j][i]) + 0))
+        elif (i + 1 != 3):
+            if (round(matrix[j][i], 2) == -0.00):
+                print("0.00\t"),
+            else:
+                print ("%.2f\t"%((matrix[j][i]) + 0)),
+        i = i + 1
+        if (i == 3):
+            i = 0
+            j = j + 1
+
+def aff_final_coord(x, y, matrix):
+    print ("(%d,%d) => (%.2f,%.2f)"%(x, y, matrix[0][0] + 0, matrix[1][0] + 0))
+
+def calc(x, y):
+    #a faire : creer une matrice de transfo, elle sera le produit de toutes les transfo
+    #puis multplier cette matrice de transfo par celle des coordonnees initial
+    #on obtient les coordonnes finales -> apparemment non
+
+    #on cre matrice coord, on cherche le premier flag, on cree une matrice
+    #on multiplie cette matrice par celle des coords, on a les coord
+    # pareil sauf quon recree pas
+    coord_matrix = create_coord_matrix(int(sys.argv[1]), int(sys.argv[2]))
+    first = True
+    for i, arg in enumerate(sys.argv[3:]):
+        if (sys.argv[i+3] == "-t"):
+            tmp = create_translate_matrix(sys.argv[i+4], sys.argv[i+5])
+            coord_matrix = produit_matriciel(tmp, coord_matrix)
+            if first == True:
+                transfo_matrix = create_translate_matrix(sys.argv[i+4], sys.argv[i+5])
+                first = False
+            else:
+                transfo_matrix = produit_matriciel2(tmp, transfo_matrix)
+        if (sys.argv[i+3] == "-h"):
+            tmp = create_scale_matrix(sys.argv[i+4], sys.argv[i+5])
+            coord_matrix = produit_matriciel(tmp, coord_matrix)
+            if first == True:
+                transfo_matrix = create_scale_matrix(sys.argv[i+4], sys.argv[i+5])
+                first = False
+            else:
+                transfo_matrix = produit_matriciel2(tmp, transfo_matrix)
+        if (sys.argv[i+3] == "-r"):
+            tmp = create_rotate_matrix(sys.argv[i+4])
+            coord_matrix = produit_matriciel(tmp, coord_matrix)
+            if first == True:
+                transfo_matrix = create_rotate_matrix(sys.argv[i+4])
+                first = False
+            else:
+                transfo_matrix = produit_matriciel2(tmp, transfo_matrix)
+        if (sys.argv[i+3] == "-s"):
+
+
+
+            #rotation -angle
+            tmp = create_rotate_matrix(-sys.argv[i+4])
+            coord_matrix = produit_matriciel(tmp, coord_matrix)
+            #transfo_matrix = create_rotate_matrix(-sys.argv[i+4])
+            if first == True:
+                transfo_matrix = create_rotate_matrix(-sys.argv[i+4])
+                first = False
+            else:
+                transfo_matrix = produit_matriciel2(tmp, transfo_matrix)
+            #symetry par rapport a 0
+            tmp = create_symetry_matrix(0)
+            coord_matrix = produit_matriciel(tmp, coord_matrix)
+            #transfo_matrix = create_symetry_matrix(sys.argv[i+4])
+            if first == True:
+                transfo_matrix = create_symetry_matrix(sys.argv[i+4])
+                first = False
+            else:
+                transfo_matrix = produit_matriciel2(tmp, transfo_matrix)
+            #rotation angle
+            tmp = create_rotate_matrix(sys.argv[i+4])
+            coord_matrix = produit_matriciel(tmp, coord_matrix)
+            #transfo_matrix = create_rotate_matrix(sys.argv[i+4])
+            if first == True:
+                transfo_matrix = create_rotate_matrix(sys.argv[i+4])
+                first = False
+            else:
+                transfo_matrix = produit_matriciel2(tmp, transfo_matrix)
+
+
+
+
+
+                
+           # tmp = create_symetry_matrix(sys.argv[i+4])
+            #coord_matrix = produit_matriciel(tmp, coord_matrix)
+            #if first == True:
+             #   transfo_matrix = create_symetry_matrix(sys.argv[i+4])
+              #  first = False
+            #else:
+             #   transfo_matrix = produit_matriciel2(tmp, transfo_matrix)
+    #    matrix_coord_final = produit_matriciel(transfo_matrix, coord_matrix)
+    aff_matrix(transfo_matrix)
+    aff_final_coord(x, y, coord_matrix)
+find_error()
+aff_operations()
+calc(x, y)
