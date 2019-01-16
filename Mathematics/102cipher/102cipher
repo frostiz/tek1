@@ -1,0 +1,305 @@
+#!/usr/bin/python2.7
+import sys
+from math import *
+
+def display_help():
+    print("""USAGE
+    ./102cipher message key flag
+
+DESCRIPTION
+    message     a message, made of ASCII characters
+    key         the encryption key, made of ASCII characters
+    flag        0 for the message to be encrypted, 1 to be decrypted""")
+
+try:
+    message         = sys.argv[1]
+    key             = sys.argv[2]
+    crypt_type      = sys.argv[3]
+except:
+    display_help()
+    sys.exit(84)
+
+#gestion d erreur
+
+try:
+    crypt_type = int(crypt_type)
+except:
+    print("invalid flag")
+    sys.exit(84)
+if (crypt_type != 0 and crypt_type != 1):
+    print ("invalid argument")
+    sys.exit(84)
+
+#functions
+
+def size_key_matrix():
+    square      = 0
+    i           = 0
+    while (square < len(key)):
+        square = i * i
+        i = i + 1
+    try:
+        nb_cols_key = square / (i - 1)
+    except:
+        print ("bite")
+    if (nb_cols_key <= 0):
+        print("key too short")
+        sys.exit(84)
+    return nb_cols_key
+
+def create_matrix_key(nb_column_key):
+    matrix = []
+    for i in range(nb_column_key):
+        matrix.append([0] * nb_column_key)
+    return matrix
+
+def fill_matrix_key(matrix, nb_cols_key):
+    i = 0
+    j = 0
+    for car in key:
+        matrix[i][j] = ord(car)
+        j = j + 1
+        if (j == nb_cols_key):
+            j = 0
+            i = i + 1
+    return matrix
+
+def aff_matrix(matrix, nb_cols_key, x):
+    print("Key matrix :")
+    i = 0
+    j = 0
+    while (j != nb_cols_key):
+        if (i + 1 == nb_cols_key and x == 1):
+            print ("%d"%matrix[j][i])
+        elif (i + 1 != nb_cols_key and x == 1):
+            print ("%d\t"%matrix[j][i]),
+        if (i + 1 == nb_cols_key and x == 2):
+            print ("%.3f"%matrix[j][i])
+        elif (i + 1 != nb_cols_key and x == 2):
+            print ("%.3f\t"%matrix[j][i]),
+        i = i + 1
+        if (i == nb_cols_key):
+            i = 0
+            j = j + 1
+
+def create_matrix_message(nb_cols_key):
+    global cols_messtab
+
+    messagetab = []
+    if (len(message) % nb_cols_key == 0):
+        try:
+            cols_messtab = len(message) / nb_cols_key
+        except:
+            print("error lors du calcul du nombre de colonne dans la matrice message")
+    elif (len(message) % nb_cols_key > 0):
+        try:
+            cols_messtab = len(message) / nb_cols_key + 1
+        except:
+            print("error lors du calcul du nombre de colonne dans la matrice message")
+    for i in range(cols_messtab):
+            messagetab.append([0] * nb_cols_key)
+    return messagetab
+
+def fill_matrix_message(matrix, nb_cols_key):
+    i = 0
+    j = 0
+    for car in message:
+        matrix[i][j] = ord(car)
+        j = j + 1
+        if (j == nb_cols_key):
+            j = 0
+            i = i + 1
+    return matrix
+
+def aff_encrypted_message():
+    i = 0
+    j = 0
+    k = 0
+    result = 0
+    print("\nEncrypted message :")
+    while (i != cols_messtab):
+        result = result + messtab[i][j] * keytab[j][k]
+        j = j + 1
+        if (j == nb_cols_key):
+            k = k + 1
+            print result,
+            result = 0
+            j = 0
+            if (k == nb_cols_key):
+                k = 0
+                i = i + 1
+
+def calcul_determinant(nb_cols_key, keytab):
+    if (nb_cols_key == 1):
+        determinant = float(keytab[0][0])
+    elif (nb_cols_key == 2):
+        a = float(keytab[0][0])
+        b = float(keytab[0][1])
+        c = float(keytab[1][0])
+        d = float(keytab[1][1])
+        determinant = a*d - b*c
+    elif (nb_cols_key == 3):
+        a = float(keytab[0][0])
+        b = float(keytab[0][1])
+        c = float(keytab[0][2])
+        d = float(keytab[1][0])
+        e = float(keytab[1][1])
+        f = float(keytab[1][2])
+        g = float(keytab[2][0])
+        h = float(keytab[2][1])
+        i = float(keytab[2][2])
+        determinant = (a*e*i)+(b*f*g)+(c*d*h)-(c*e*g)-(f*h*a)-(i*b*d)
+    else:
+        sys.exit(84)
+    if (determinant == 0):
+        print("determinant egale a 0")
+        sys.exit(84)
+    try:
+        inv_determinant = 1 / determinant
+    except:
+        print("bite")
+    return inv_determinant
+
+    #main
+def inverse_matrice(keytab, nb_cols_key, inv_determinant):
+    if (nb_cols_key == 1):
+        print ("matrice non inversible, la taille de la cle est de 1")
+        sys.exit(84)
+    elif (nb_cols_key == 2):
+        tmp = keytab[0][0]
+        keytab[0][0] = keytab[1][1]
+        keytab[1][1] = tmp
+        
+        tmp = -keytab[0][1]
+        keytab[0][1] = -keytab[1][0]
+        keytab[1][0] = tmp
+
+        tmp = keytab[0][1]
+        keytab[0][1] = keytab[1][0]
+        keytab[1][0] = tmp
+
+        keytab[0][0] = keytab[0][0] * inv_determinant
+        keytab[0][1] = keytab[0][1] * inv_determinant
+        keytab[1][0] = keytab[1][0] * inv_determinant
+        keytab[1][1] = keytab[1][1] * inv_determinant
+    elif (nb_cols_key == 3):
+        a = float(keytab[0][0])
+        b = float(keytab[0][1])
+        c = float(keytab[0][2])
+        d = float(keytab[1][0])
+        e = float(keytab[1][1])
+        f = float(keytab[1][2])
+        g = float(keytab[2][0])
+        h = float(keytab[2][1])
+        i = float(keytab[2][2])
+
+        keytab[0][0] = (e*i) - (f*h)
+        keytab[0][1] = (c*h) - (b*i)
+        keytab[0][2] = (b*f) - (c*e)
+        keytab[1][0] = (f*g) - (d*i)
+        keytab[1][1] = (a*i) - (c*g)
+        keytab[1][2] = (c*d) - (a*f)
+        keytab[2][0] = (d*h) - (e*g)
+        keytab[2][1] = (b*g) - (a*h)
+        keytab[2][2] = (a*e) - (b*d)
+
+        keytab[0][0] = keytab[0][0] * inv_determinant
+        keytab[0][1] = keytab[0][1] * inv_determinant
+        keytab[0][2] = keytab[0][2] * inv_determinant
+        keytab[1][0] = keytab[1][0] * inv_determinant
+        keytab[1][1] = keytab[1][1] * inv_determinant
+        keytab[1][2] = keytab[1][2] * inv_determinant
+        keytab[2][0] = keytab[2][0] * inv_determinant
+        keytab[2][1] = keytab[2][1] * inv_determinant
+        keytab[2][2] = keytab[2][2] * inv_determinant
+
+    return keytab
+
+def get_numbers(nb_cols_key):
+    numbers = message.split(" ")
+    message_matrix = []
+    if (len(message) % nb_cols_key == 0):
+        size_message_matrix = len(message) / nb_cols_key
+    elif (len(message) % nb_cols_key > 0):
+        size_message_matrix = len(message) / nb_cols_key + 1
+    for i in range(size_message_matrix):
+        message_matrix.append([0] * nb_cols_key)
+    i = 0
+    j = 0
+    k = 0
+    while (i != len(numbers)):
+        try:
+            message_matrix[j][k] = float(numbers[i])
+        except:
+            sys.exit(84)
+        i += 1
+        k += 1
+        if (k == nb_cols_key):
+            k = 0
+            j += 1
+    return message_matrix
+
+def aff_decrypted_message(nb_cols_key):
+    i = 0
+    j = 0
+    k = 0
+    o = 0
+    test = 0.0
+    numbers = message.split(" ")
+    result = ["0"] * (len(numbers) * len(numbers))
+    if (len(message) % nb_cols_key == 0):
+        size_message_matrix = len(message) / nb_cols_key
+    elif (len(message) % nb_cols_key > 0):
+        size_message_matrix = len(message) / nb_cols_key + 1
+    while (i != size_message_matrix):
+        test = test + keytab[j][k] * message_matrix[i][j]
+        j = j + 1
+        if (j == nb_cols_key):
+            print test
+            test = round(test, 0)
+            test = int(test)
+            try:
+                result[o] = chr(test)
+            except e:
+                print("le chr a fail")
+                print e
+                sys.exit(84)
+            o = o + 1
+            test = 0.00
+            #result[i][k] = test
+            #result[i][k] = int(result[i][k])
+            #result[i][k] = chr(result[i][k])
+            k = k + 1
+            j = 0
+            if (k == nb_cols_key):
+                k = 0
+                i = i + 1
+    return result
+
+def really_aff_decrypted_message(result):
+    t = "".join(result)
+    t = t.replace("0", "")
+    t = t.replace('\x00', "")
+    print t
+
+nb_cols_key = size_key_matrix()
+keytab = create_matrix_key(nb_cols_key)
+keytab = fill_matrix_key(keytab, nb_cols_key)
+if (crypt_type == 0):
+    messtab = create_matrix_message(nb_cols_key)
+    messtab = fill_matrix_message(messtab, nb_cols_key)
+    aff_matrix(keytab, nb_cols_key, 1)
+    aff_encrypted_message()
+elif (crypt_type == 1):
+    #on calcule le determinant en fonction de la taille de la matrice
+    inv_determinant = calcul_determinant(size_key_matrix(), keytab)
+    #on calcule l'inverse de la matrice toujours en fonction de sa taille
+    keytab = inverse_matrice(keytab, nb_cols_key, inv_determinant)
+    #on affiche la matrice inverse
+    aff_matrix(keytab, nb_cols_key, 2)
+    #on rempli la matrice message pour faire le produit
+    message_matrix = get_numbers(nb_cols_key)
+    #on fait le produit en affichant le message
+    print("\nDecrypted message :")
+    result = aff_decrypted_message(nb_cols_key)
+    really_aff_decrypted_message(result)
