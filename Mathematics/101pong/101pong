@@ -1,0 +1,71 @@
+#!/usr/bin/python2.7
+import sys
+from math import *
+
+#display help
+def display():
+    print("The speed vector coordinates are :\n(%.2f;%.2f;%.2f)"%(vitesse_x, vitesse_y, vitesse_z))
+    print("At time t+" + str(n) + ", ball coordinates will be :\n(%.2f;%.2f;%.2f)"%(ball_coordx, ball_coordy, ball_coordz))
+    if ((z0 > 0 and z1 < 0) or
+        (z0 < 0 and z1 > 0) or
+        (z0 < 0 and z1 <= z0) or
+        (z0 > 0 and z1 >= z0) or
+        (angle < 0 or angle > 90)):
+        print("The ball won't reach the bat.")
+    elif (angle >= 0 and angle <= 90):
+        print("The incidence angle is :\n%.2f"%angle + " degrees")
+
+def display_help():
+    print('USAGE\n\t%s x0 y0 z0 x1 y1 z1 n\n\nDESCRIPTION\n\tx0\tball abscissa at time t - 1\n\ty0\tball ordinate at time t - 1\n\tz0\tball altitude at time t - 1\n\tx1\tball abscissa at time t\n\ty1\tball ordinate at time t\n\tz1\tball altitude at time t\n\tn\ttime shift (greater than or equal to zero, integer)'%(sys.argv[0]));
+        
+if (len(sys.argv) != 8):
+    display_help()
+    sys.exit(84)
+
+strx0 = sys.argv[1]
+stry0 = sys.argv[2]
+strz0 = sys.argv[3]
+strx1 = sys.argv[4]
+stry1 = sys.argv[5]
+strz1 = sys.argv[6]
+strn = sys.argv[7]
+
+if (strx0.lstrip('-').replace(".", "", 1).isdigit() == True and
+    stry0.lstrip('-').replace(".", "", 1).isdigit() == True and
+    strz0.lstrip('-').replace(".", "", 1).isdigit() == True and
+    strx1.lstrip('-').replace(".", "", 1).isdigit() == True and
+    stry1.lstrip('-').replace(".", "", 1).isdigit() == True and
+    strz1.lstrip('-').replace(".", "", 1).isdigit() == True):
+    x0 = float(strx0)
+    y0 = float(stry0)
+    z0 = float(strz0)
+    x1 = float(strx1)
+    y1 = float(stry1)
+    z1 = float(strz1)
+else:
+    print("Invalid argument ! you must put only numbers !")
+    sys.exit(84)
+if (strn.isdigit() == True):
+    n = int(strn)
+else:
+    print("n must be an integer !")
+    sys.exit(84)
+if (n < 0):
+    print("Error ! n must be greater than or equal to zero")
+    sys.exit(84)
+
+vitesse_x = (x1 - x0)
+vitesse_y = (y1 - y0)
+vitesse_z = (z1 - z0)
+
+if (sqrt(pow(vitesse_x, 2) + pow(vitesse_y, 2) + pow(vitesse_z, 2)) == 0):
+    print("Error ! Division by zero !")
+    sys.exit(84)
+angle = acos(sqrt(pow(vitesse_x, 2) + pow(vitesse_y, 2))/sqrt(pow(vitesse_x, 2) + pow(vitesse_y, 2) + pow(vitesse_z, 2)))
+angle = angle * (180/pi)
+
+ball_coordx = x1 + n * vitesse_x
+ball_coordy = y1 + n * vitesse_y
+ball_coordz = z1 + n * vitesse_z
+display()
+sys.exit(0)

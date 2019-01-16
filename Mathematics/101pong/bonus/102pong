@@ -1,0 +1,107 @@
+#!/usr/bin/python2.7
+import sys
+from math import *
+from Tkinter import *
+import time
+
+window = Tk()
+
+width = 1280
+height = 720
+canvas = Canvas(window, width=width, height=height, background='black')
+ligne1 = canvas.create_line(width/2, 0, width/2, height, fill ='white')
+ball = canvas.create_rectangle(width/2 - 5, height/2 - 5, width/2 + 5, height/2 + 5, fill ='white')
+circle = canvas.create_oval(width/2 - 50, height/2 - 50, width/2 + 50, height/2 + 50, outline ='white')
+right_bat = canvas.create_rectangle(width - 20, height/2 - 60, width - 5, height/2 + 60, outline ='white')
+left_bat = canvas.create_rectangle(20, height/2 - 60, 5, height/2 + 60, outline ='white')
+aff_score_left = canvas.create_text(width/2 - 30, 30, text='0', fill='white', font='none, 30')
+aff_score_right = canvas.create_text(width/2 + 30, 30, text='0', fill='white', font='none, 30')
+i = 1
+
+score_left = 0
+score_right = 0
+Arret = True
+pente = float(0)
+
+def Arreter():
+    global Arret
+    Arret = True
+
+def demarrer():
+    global Arret
+    Arret = False
+    move()
+right = 0
+left = 0
+def move():
+    global coords
+    global i
+    global score_left
+    global Arret
+    global right, left
+    global aff_score_left, aff_score_right
+    global pente
+    global height, width
+    canvas.move(ball, i, pente)
+    coords = (coords[0] + i, coords[1] + pente)
+    if (coords[0] == width - 30):
+        if (coords[1] >= coords_right_bat[1] and coords[1] <= coords_right_bat[1] + 120):
+            i = -1
+            if (coords[1] > coords_right_bat[1] + 60):
+                pente = 0.10 + (coords_left_bat[1] + 120 - coords[1]) * 0.002
+            elif (coords[1] < coords_right_bat[1] + 60):
+                pente = -0.10 - (coords_left_bat[1] + 120 - coords[1]) * 0.002
+    if (coords[0] == 20):
+        if (coords[1] >= coords_left_bat[1] and coords[1] <= coords_left_bat[1] + 120):
+            i = 1
+            if (coords[1] > coords_left_bat[1] + 60):
+                pente = 0.10 + (coords_left_bat[1] + 120 - coords[1]) * 0.002
+            elif (coords[1] < coords_left_bat[1] + 60):
+                pente = -0.10 - (coords_left_bat[1] + 120 - coords[1]) * 0.002
+    if (coords[1] >= height or coords[1] <= 0):
+        pente = -pente
+    if (coords[0] == width + 5):
+        canvas.delete(aff_score_left)
+        left = left + 1
+        aff_score_left = canvas.create_text(width/2 - 30, 30, text= left, fill='white', font='none, 30')
+        coords = (width/2 + 5, height/2 - 5)
+        canvas.coords(ball, coords[0], coords[1], coords[0] - 10, coords[1] + 10)
+        Arret = True
+    if (coords[0] == - 5):
+        right = right + 1
+        canvas.delete(aff_score_right)
+        aff_score_right = canvas.create_text(width/2 + 30, 30, text=right, fill='white', font='none, 30')
+        coords = (width/2 + 5, height/2 - 5)
+        canvas.coords(ball, coords[0], coords[1], coords[0] - 10, coords[1] + 10)
+        Arret = True
+    if (Arret == False):
+        window.after(1, move)
+
+def clavier(event):
+    global coords_left_bat
+    global coords_right_bat
+    global height
+    global maxi
+    touche = event.keysym
+    if (touche == "a" and coords_left_bat[1] > 0):
+        coords_left_bat = (coords_left_bat[0], coords_left_bat[1] - 60)
+    elif (touche == "q" and coords_left_bat[1] < height - 120):
+        coords_left_bat = (coords_left_bat[0], coords_left_bat[1] + 60)
+    elif (touche == "Up" and coords_right_bat[1] > 0):
+        coords_right_bat = (coords_right_bat[0], coords_right_bat[1] - 60)
+    elif (touche == "Down" and coords_right_bat[1] < height - 120):
+        coords_right_bat = (coords_right_bat[0], coords_right_bat[1] + 60)
+    elif touche == "e":
+        demarrer()
+    canvas.coords(right_bat, coords_right_bat[0], coords_right_bat[1], coords_right_bat[0] - 15, coords_right_bat[1] + 120)
+    canvas.coords(left_bat, coords_left_bat[0], coords_left_bat[1], coords_left_bat[0] + 15, coords_left_bat[1] + 120)
+
+print('Player one (left) controls: A -> move up / Q -> move down\nPlayer two (right) controls: ARROW_KEY_UP -> move up / ARROW_KEY_DOWN -> move down\nPress E to launch the ball and start the game');
+coords = (width/2 - 5, height/2 - 5)
+coords_left_bat = (5, height/2 - 60)
+coords_right_bat = (width - 5, height/2 - 60)
+canvas.focus_set()
+canvas.bind("<Key>", clavier)
+canvas.pack()
+window.mainloop()
+sys.exit(0)
