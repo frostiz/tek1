@@ -1,0 +1,322 @@
+#!/usr/bin/env python3
+import sys
+from math import *
+
+def somme_matrice(mat1, mat2, nb_arg) :
+    i = 0
+    j = 0
+    while (i != nb_arg) :
+        mat1[i][j] = mat1[i][j] + mat2[i][j]
+        j += 1
+        if (j == nb_arg) :
+            i += 1
+            j = 0
+    return (mat1)
+
+def fill_matrice(matrice, nb_arg) :
+    i = 2
+    j = 0
+    x = 0
+    while (i < (len(sys.argv))) :
+        matrice[j][x] = int(sys.argv[i])
+        i += 1
+        x += 1
+        if (x == nb_arg) :
+            j += 1
+            x = 0
+    return (matrice)
+
+def fill_idmatrice(idmatrice, nb_arg) :
+    i = 0
+    while (i < nb_arg) :
+        idmatrice[i][i] = 1
+        i += 1
+    return (idmatrice)
+
+def fact(x) : 
+    x = int(x)
+    result = 1 
+    while (x > 1) : 
+        result = result*x 
+        x = x - 1 
+    return result
+
+def fact_mat(mat1, nb_arg, n) :
+    n = fact(n)
+    i = 0
+    j = 0
+    while (i < nb_arg) :
+        mat1[i][j] /= n
+        j += 1
+        if (j == nb_arg) :
+            i += 1
+            j = 0
+    return (mat1)
+            
+def EXP(matrice, idmatrice, nb_arg) :
+    n = 2
+    result = somme_matrice(idmatrice, matrice, nb_arg)
+    while (n < 100) :
+        idmatrice = prod_matrice(matrice, nb_arg, n)
+        idmatrice = fact_mat(idmatrice, nb_arg, n)
+        result = somme_matrice(idmatrice, result, nb_arg)
+        n += 1
+  #  print (result)
+
+  
+## TOUTES LES INITIALISATIONS
+#fun = sys.argv[1]
+#nb_arg = len(sys.argv) - 2
+#x = 0
+#while (pow(x, 2) != len(sys.argv) - 2) :
+ #   x += 1
+#nb_arg = int(nb_arg / x)
+#matrice = [[0] * (nb_arg) for _ in range(nb_arg)]
+#idmatrice = [[0] * (nb_arg) for _ in range(nb_arg)]
+#matrice = fill_matrice(matrice, nb_arg)
+#idmatrice = fill_idmatrice(idmatrice, nb_arg)
+#EXP(matrice, idmatrice, nb_arg)
+
+
+def check_error(flags):
+    if (len(sys.argv) <= 2):
+        print ("more arguments required")
+        sys.exit(84)
+    for i in sys.argv[2:]:
+        if (i.lstrip('-').replace(".", "", 1).isdigit() == False):
+            print ("Usage : ./108trigo FUN coef1 coef2 coef3 coefn...")
+            sys.exit(84)
+    fun = sys.argv[1]
+    for a in flags:
+        if (a == fun):
+            return a;
+    print ("Invalid fun")
+    print ("Usage : ./108trigo FUN coef1 coef2 coef3 coefn...")
+    sys.exit(84)
+
+
+def get_size():
+    nb_coef = 0
+    size = 0
+    for i in sys.argv[2:]:
+        nb_coef += 1
+    if (sqrt(nb_coef) == int(nb_coef / sqrt(nb_coef))):
+        size = int(nb_coef / sqrt(nb_coef))
+    if (size == 0):
+        sys.exit(84)
+    return size
+            
+def create_matrix(size):
+    matrix = []
+    for i in range(size):
+        matrix.append([0.0] * size) 
+    return matrix;
+
+def fill_matrix(matrix, size):
+    i = 0
+    j = 0
+    for nb in sys.argv[2:]:
+        matrix[i][j] = int(nb)
+        j += 1
+        if (j == size):
+            j = 0
+            i += 1
+    return matrix;
+
+def create_id_matrix(size):
+    i = 0;
+    j = 0;
+    matrix = []
+    for _ in range(size):
+        matrix.append([0] * size) 
+    while (j < size and i < size):
+        matrix[i][j] = 1;
+        j += 1
+        i += 1        
+    return (matrix)
+
+def somme_matrix(mat1, mat2, size) :
+    i = 0
+    j = 0
+    res_mat = create_matrix(size)
+    while (i < size) :
+        res_mat[i][j] = mat1[i][j] + mat2[i][j]
+        j += 1
+        if (j == size) :
+            i += 1
+            j = 0
+    return (res_mat)
+
+def power_matrix(matrix, size):
+    i = 0
+    tmp = create_matrix(size)
+    while (i < size):
+        j = 0
+        while (j < size):
+            tmp[i][j] = matrix[i][j] * matrix[i][j]
+            j += 1
+        i += 1
+    return (tmp)
+
+def divise_matrix2(matrix, size, pui, n):
+    i = 0
+    tmp = create_matrix(size)
+    while (i < size):
+        j = 0
+        while (j < size):
+            if (n % 2 == 0):
+                tmp[i][j] = matrix[i][j] / factorial(pui)
+            else:
+                tmp[i][j] = matrix[i][j] / -factorial(pui)
+            j += 1
+        i += 1
+    return (tmp)
+
+def divise_matrix(matrix, size, pui):
+    i = 0
+    tmp = create_matrix(size)
+    while (i < size):
+        j = 0
+        while (j < size):
+            tmp[i][j] = matrix[i][j] / factorial(pui)
+            j += 1
+        i += 1
+    return (tmp)
+
+def produit_matriciel(matrixa, matrixb, size):
+    i = 0
+    j = 0
+    k = 0
+    l = 0
+    m = 0
+    result = 0
+    matrix_result = []
+    for s in range(size):
+        matrix_result.append([0] * size)
+    while (i != size):
+        result = result + matrixa[i][j] * matrixb[j][k]
+        j += 1
+        if (j == size):
+            k = k + 1
+            matrix_result[l][m] = result
+            m += 1
+            result = 0
+            j = 0
+            if (k == size):
+                l = l + 1
+                k = 0
+                m = 0
+                i = i + 1
+    return matrix_result
+
+def calc_exp(matrix, id_matrix, size, flag):
+    pui = 2
+    init_matrix = matrix
+    res_matrix = somme_matrix(matrix, id_matrix, size)
+    while (pui < 100):
+        matrix = produit_matriciel(matrix, init_matrix, size)
+        matrix_fact = divise_matrix(matrix, size, pui)
+        res_matrix = somme_matrix(matrix_fact, res_matrix, size);
+        pui += 1
+    return (res_matrix)
+
+def calc_sinh(matrix, id_matrix, size, flag):
+    pui = 3
+    init_matrix = matrix
+    res_matrix = matrix
+    while (pui < 100):
+        i = 0
+        while (i < 2):
+            matrix = produit_matriciel(matrix, init_matrix, size)
+            i += 1
+        matrix_fact = divise_matrix(matrix, size, pui)
+        res_matrix = somme_matrix(matrix_fact, res_matrix, size);
+        pui += 2
+    return (res_matrix)
+
+def calc_sin(matrix, id_matrix, size, flag):
+    pui = 3
+    init_matrix = matrix;
+    res_matrix = matrix;
+    n = 1
+    while (pui < 100):
+        i = 0
+        while (i < 2):
+            matrix = produit_matriciel(matrix, init_matrix, size)
+            i += 1
+        matrix_fact = divise_matrix2(matrix, size, pui, n)
+        res_matrix = somme_matrix(matrix_fact, res_matrix, size);
+        pui += 2
+        n += 1
+    return (res_matrix)
+
+def calc_cos(matrix, id_matrix, size, flag):
+    pui = 2
+    init_matrix = matrix
+    res_matrix = id_matrix;
+    n = 1
+    while (pui < 100):
+        if (pui == 2):
+            i = 1
+        else:
+            i = 0
+        while (i < 2):
+            matrix = produit_matriciel(matrix, init_matrix, size)
+            i += 1
+        matrix_fact = divise_matrix2(matrix, size, pui, n)
+        res_matrix = somme_matrix(matrix_fact, res_matrix, size);
+        pui += 2
+        n += 1
+    return (res_matrix)
+
+def calc_cosh(matrix, id_matrix, size, flag):
+    pui = 2
+    init_matrix = matrix
+    res_matrix = id_matrix
+    while (pui < 100):
+        if (pui == 2):
+            i = 1
+        else:
+            i = 0
+        while (i < 2):
+            matrix = produit_matriciel(matrix, init_matrix, size)
+            i += 1
+        matrix_fact = divise_matrix(matrix, size, pui)
+        res_matrix = somme_matrix(matrix_fact, res_matrix, size);
+        pui += 2
+    return (res_matrix)
+
+
+def display_matrix(matrix, size):
+    i = 0
+    while (i < size):
+        j = 0
+        while (j < size):
+            if (j == size - 1):
+                print ("%.2f"%matrix[i][j])
+            else:
+                print ("%.2f\t"%matrix[i][j], end='')
+            j += 1
+        i += 1
+
+def calc(matrix, id_matrix, size, flag):
+    if (flag == "EXP"):
+        res_matrix = calc_exp(matrix, id_matrix, size, flag)
+    elif (flag == "COS"):
+        res_matrix = calc_cos(matrix, id_matrix, size, flag)
+    elif (flag == "SIN"):
+        res_matrix = calc_sin(matrix, id_matrix, size, flag)
+    elif (flag == "COSH"):
+        res_matrix = calc_cosh(matrix, id_matrix, size, flag)
+    elif (flag == "SINH"):
+        res_matrix = calc_sinh(matrix, id_matrix, size, flag)
+    return (res_matrix)
+                        
+flags = ["EXP", "COS", "SIN", "COSH", "SINH"]
+flag = check_error(flags);
+size = get_size();
+matrix = create_matrix(size);
+id_matrix = create_id_matrix(size);
+matrix = fill_matrix(matrix, size);
+res_matrix = calc(matrix, id_matrix, size, flag);
+display_matrix(res_matrix, size);

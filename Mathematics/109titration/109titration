@@ -1,0 +1,145 @@
+#!/usr/bin/env python3
+import sys
+import os.path
+import csv
+from math import *
+
+sys.exit(84)
+def usage():
+    print("USAGE:\n\t%s file\nDESCRIPTION:\n\tfile:\ta csv file containing \"vol;ph\" lines"%
+          sys.argv[0]);
+    sys.exit(84);
+def check_error():
+    if (len(sys.argv) != 2):
+        usage();
+    ext = os.path.splitext(sys.argv[1]);
+    if (ext[1] != ".csv"):
+        print ("Extension error : %s\n"%ext[1]);
+        usage();
+
+def firstderiv(tab, nb):
+    result = []
+    for a in range(len(tab) - nb + 1):
+        result.append([0] * 2)
+    j = 1
+    i = 0;
+    while (i < len(tab) - 2):
+        result[i][0] = tab[j][0];
+        result[i][1] = (tab[j + 1][1] - tab[j - 1][1]) / (tab[j + 1][0] - tab[j - 1][0]);
+        i += 1;
+        j += 1;
+    return result
+
+def get_equi(result):
+    i = 0
+    mymax = result[0][0]
+    pos = 0
+    for row in result:
+        if (result[i][1] > mymax):
+            mymax = result[i][1]
+            pos = i
+        i += 1
+    return result[pos][0]
+
+
+def show_derivativ(result, minu):
+    i = 0
+    j = 0
+    y = 0
+    while (i < len(result) - minu):
+        j = 0
+        y = 0
+        while (j < 3):
+            bite = result[i][0]
+            if (round(bite, j) == result[i][0]):
+                print ("volume: %.*f ml -> %.2f"%(j, result[i][0], result[i][1]))
+                y = 1
+                j = 3
+            j += 1
+        if (y == 0):
+            print ("volume: %.2f ml -> %.2f"%(result[i][0], result[i][1]))
+        i += 1;
+
+def convert_to_float():
+    tab = csv.reader(open(sys.argv[1], "r"), delimiter=';');
+    for row in tab:
+        yield [ float(i) for i in row ]
+    return tab
+
+def create_final(last, final, first_arg):
+    k = 0
+    while (k != last):
+        final.append([0] * 2)
+        final[k][0] = round(first_arg, 1)
+        k += 1
+        first_arg += 0.1
+    return final
+        
+def last_derivative(result, last, i):
+    first_arg = result[i - 1][0];
+    final = []
+    
+    final = create_final(last, final, first_arg)
+    k = 1;
+    pas = (result[i][1] - result[i - 1][1]) / ((result[i][0] - result[i - 1][0]) * 10)
+    final[0][1] = result[i - 1][1];
+    j = final[0][0];
+    while (j < result[i][0] - 0.1):
+        final[k][1] = final[k - 1][1] + pas;
+        j += 0.1
+        k += 1
+    pas = (result[i + 1][1] - result[i][1]) / ((result[i + 1][0] - result[i][0]) * 10)
+    while (j < result[i + 1][0] - 0.1):
+        final[k][1] = final[k - 1][1] + pas
+        j += 0.1
+        k += 1
+    return (final);
+
+def get_real_equi(result, last):
+    i = 0
+    while (i != last):
+        if (result[i][1] * result[i + 1][1] < 0):
+            return (result[i][0]);
+        i += 1;
+    return (0);
+
+check_error();
+tab = list(convert_to_float())
+result = firstderiv(tab, 1);
+print ("Derivative:")
+show_derivativ(result, 2);
+equi = get_equi(result)
+i = 0
+y = 0
+while (i < 3):
+    bite = equi;
+    if (round(bite, i) == equi):
+        print ("\nEquivalent point at %.*f ml\n"%(i, equi))
+        i = 3
+        y = 1
+    i += 1
+if (y == 0):
+    print ("\nEquivalent point at %.1f ml\n"% equi)
+result = firstderiv(result, 3);
+print ("Second derivative:")
+show_derivativ(result, 2);
+print ("\nSecond derivative estimated:")
+
+i = 0;
+while (result[i][0] != equi):
+    i += 1;
+last = (result[i + 1][0] - result[i - 1][0]) * 10 + 1
+result = last_derivative(result, last, i);
+show_derivativ(result, 0);
+equi = get_real_equi(result, last)
+i = 0
+y = 0
+while (i < 3):
+    bite = equi;
+    if (round(bite, i) == equi):
+        print ("\nEquivalent point at %.*f ml"%(i, equi))
+        i = 3
+        y = 1
+    i += 1
+if (y == 0):
+    print ("\nEquivalent point at %.1f ml"% equi)

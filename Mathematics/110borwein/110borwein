@@ -1,0 +1,78 @@
+#!/usr/bin/env python3
+import os.path
+import sys
+from math import *
+
+def print_result(string, result, diff):
+    print (string)
+    print ("I0 = %.10f"% result)
+    print ("diff = %.10f"% diff)
+    return (0)
+
+def integral(x, n):
+    result = 1
+    a = 0
+    if (x == 0):
+        return 1
+    while (a <= n):
+        result = result * (sin(x / ((2 * a) + 1)) / (x / ((2 * a) + 1)))
+        a += 1
+    return (result)
+
+def rectangle(h, n):
+    result = 0.0
+    i = 0
+    while (i < 10000):
+        result += integral(i * h, n)
+        i += 1
+    result *= h
+    result = abs(result)
+    diff = (result - (pi / 2))
+    print_result("Rectangles:", result, diff)
+    print ("")
+    return (0)
+
+def trapezoid(h, n):
+    result = 0.0
+    i = 1
+    while (i < 10000):
+        result = result + integral(i * h, n)
+        i += 1
+    result = ((result * 2 + integral(0, n) + integral(5000, n)) * 5000 / (20000))
+    result = abs(result)
+    diff = (result - (pi / 2))
+    print_result("Trapezoids:", result, diff)
+    print ("")
+    return (0)
+
+def simpson(h, n):
+    result = 0.0
+    result1 = 0.0
+    result2 = 0.0
+    i = 1
+    while (i < 10000):
+        result1 = result1 + integral(i * h, n)
+        i += 1
+    i = 0
+    while (i < 10000):
+        result2 = result2 + integral((i * h) + (h / 2), n)
+        i += 1
+    result = (result1 * 2 + result2 * 4 + integral(0, n) + integral(5000, n)) * (5000) / (10000 * (4 + 2))
+    result = abs(result)
+    diff = round((result - (pi / 2)), 10)
+    print_result("Simpson:", result, diff)
+    return (0)
+
+def make_and_display():
+    n = int(sys.argv[1])
+    h = 5000.0 / 10000.0
+    rectangle(h, n)
+    trapezoid(h, n)
+    simpson(h, n)
+    return (0)
+
+try :
+    make_and_display()
+
+except:
+    sys.exit(84)

@@ -1,0 +1,89 @@
+#!/usr/bin/python3
+import sys
+
+def check_err():
+    if ((len(sys.argv) - 1) % 2 != 0 or len(sys.argv) <= 1):
+        print ("invalid number of arguments !")
+        sys.exit(84)
+    stars = 0
+    for i in sys.argv[1:]:
+        if (i[len(i) - 1] == '*'):
+            print ("invalid characters found : %c"%i[len(i) - 1])
+            sys.exit(84)
+        if (i[0] == '*'):
+            print ("invalid characters found : %c"%i[0])
+            sys.exit(84)
+        for j in i:
+            if (((j < '0' or j > '9') and (j != '*'))):
+                print ("invalid characters found : %c"%j)
+                sys.exit(84)
+            if (stars == 1 and j == '*'):
+                print ("invalid characters found : %c"%j)
+                sys.exit(84)
+            if (j == '*'):
+                stars = 1
+            else:
+                stars = 0
+def create_tab():
+    i = 1
+    j = len(sys.argv)
+    l = (j - 1) * [0]
+    while (i < j):
+        l[i - 1] = sys.argv[i].split('*')
+        i += 1
+    return (l)
+
+def get_results(tab, k):
+    try:
+        results = [0] * int(((len(sys.argv) - 1) / 2))
+        i = 0
+        a = 0
+        while (i < len(tab)):
+            resultat = 0.0
+            resultat2 = 0.0
+            final = 0.0
+            pui = 1
+            for nb in tab[i]:
+                resultat = resultat + float(nb) * (k ** pui)
+                pui += 1
+            pui = 1
+            for nb in tab[i + 1]:
+                resultat2 = resultat2 + float(nb) * (k ** pui)
+                pui += 1
+            if (k >= 0.001):
+                final = resultat/resultat2;
+            else:
+                final = 0.0
+            results[a] = final
+            a += 1
+            i += 2
+        return results
+    except:
+        sys.exit(84)
+
+def aff(k, final):
+    j = 0
+    while (j < 4):
+        tmp = k
+        if (round(tmp, j) >= k - 0.0009 and round(tmp,j) <= k + 0.0009):
+            print ("%.*f -> %.5f"%(j, k, final))
+            return ;
+        j += 1
+    print ("%.3f -> %.5f"%(k, final))
+
+def calc2(tab):
+    k = 0.0
+    while (k <= 1.001):
+        i = 0
+        final = 1.0
+        results = get_results(tab, k)
+        while (i < len(results)):
+            final = final * results[i]
+            i += 1
+        aff(k, final)
+        k = k + 0.001000000000000000000
+#check_err();
+tab = create_tab();
+calc2(tab);
+
+
